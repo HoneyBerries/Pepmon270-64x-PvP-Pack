@@ -3,8 +3,8 @@ rem run_after_editing_rp.bat — auto-commit and push Minecraft resource pack ch
 rem Run this AFTER you finish editing
 rem
 rem Behavior:
-rem   - Automatically commits all changes with a timestamped message
-rem   - Then asks if you want to add a custom note to the commit message
+rem   - Automatically commits all tracked changes (git commit -am)
+rem   - Then asks for an optional note to append to the message
 rem
 rem Optional env vars:
 rem   DRY_RUN=1   -> only print commands
@@ -29,23 +29,17 @@ if not defined BRANCH (
   goto :end
 )
 
-:: check for changes
-for /f "delims=" %%l in ('git status --porcelain') do (
-  set HAS_CHANGES=1
-  goto :afterScan
-)
-:afterScan
-if not defined HAS_CHANGES (
+:: check for tracked changes only
+git diff --quiet && git diff --cached --quiet && (
   echo No changes detected. Nothing to publish.
   goto :end
 )
 
-:: build auto commit message
-for /f "tokens=1-4 delims=/ " %%a in ('date /t') do set TODAY=%%a-%%b-%%c
-for /f "tokens=1-2 delims=: " %%a in ('time /t') do set NOW=%%a%%b
-set AUTO_MSG=Update resource pack (%TODAY% %NOW%)
+:: build auto commit message (locale-safe)
+for /f "delims=" %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HH-mm"') do set TS=%%i
+set AUTO_MSG=Update resource pack (%TS%)
 
-:: ask for optional note
+:: optional note
 echo Default commit message:
 echo   %AUTO_MSG%
 echo.
@@ -67,17 +61,13 @@ git status --short
 
 echo.
 if "%DRY_RUN%"=="1" (
-  echo DRY RUN: git add -A
-  echo DRY RUN: git commit -m "%FINAL_MSG%"
+  echo DRY RUN: git commit -am "%FINAL_MSG%"
   echo DRY RUN: git push %REMOTE% %BRANCH%
   goto :end
 )
 
-echo Adding changes...
-git add -A || goto :gitfail
-
-echo Committing...
-git commit -m "%FINAL_MSG%" || goto :gitfail
+echo Committing tracked changes...
+git commit -am "%FINAL_MSG%" || goto :gitfail
 
 echo Pushing to cloud...
 git push %REMOTE% %BRANCH% || goto :gitfail
@@ -89,10 +79,10 @@ goto :end
 :gitfail
 echo.
 echo ERROR: Publish failed (errorlevel %errorlevel%).
-
-echo Fix the issue above and try again.
-
-goto :end
+echo If files are new, add them once with:
+ echo   git add -A
+ echo   git commit -m "Initial add"
+ goto :end
 
 :end
 if not defined NO_PAUSE (
