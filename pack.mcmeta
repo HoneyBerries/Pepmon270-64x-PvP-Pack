@@ -1,11 +1,11 @@
 {
   "pack": {
-      "min_format": 75,
-      "max_format": 1024,
-      "description": "Pepmon's 64x 1.21.4+ Minecraft Texture Pack for PvP"
-    },
-    "credits": {
-      "Pepmon": "Creator of the artwork",
-      "HoneyBerries": "Additional support"
-    }
+    "pack_format": 84,
+    "pack_version": "1.0.0",
+    "description": "Pepmon's 64x Minecraft Texture Pack for PvP (26.1.2+)"
+  },
+  "credits": {
+    "Pepmon": "Creator of the artwork",
+    "HoneyBerries": "Additional support"
+  }
 }
