@@ -1,0 +1,37 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract pack version
+        id: version
+        run: |
+          VERSION=$(jq -r '.pack.pack_version' pack.mcmeta)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Pack version: $VERSION"
+
+      - name: Build resource pack ZIP
+        run: |
+          zip -r "Pepmon270-64x-PvP-Pack-v${{ steps.version.outputs.version }}.zip" \
+            assets/ \
+            pack.mcmeta
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pepmon270-64x-PvP-Pack-v${{ steps.version.outputs.version }}
+          path: Pepmon270-64x-PvP-Pack-v${{ steps.version.outputs.version }}.zip
+          retention-days: 14
