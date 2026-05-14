@@ -16,6 +16,10 @@ jobs:
         id: version
         run: |
           VERSION=$(jq -r '.pack.pack_version' pack.mcmeta)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "pack_version missing"
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Pack version: $VERSION"
 
